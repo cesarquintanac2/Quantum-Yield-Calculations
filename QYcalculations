@@ -1,0 +1,178 @@
+getwd()
+setwd("D:/2019-1 KU Leuven/Project work nanoscience/Arranged data for R")
+
+library('ggplot2')
+library(ggpubr)
+library(readxl)
+
+#Reads the data from excel and separates it from temperature.
+
+
+
+  Data <- read_excel("MSA10X 0.xlsx", col_names = TRUE)
+
+  
+  Int_Photo <-rowSums(Data[11:109]) #Old data: 109 / New data: 124.
+  #Int_Photo <-rowSums(Data[11:55])*5
+  Data<-cbind(Data,Int_Photo)
+  
+  TestSamples<-subset(Data, Buffer!='Reference')
+  TestSamples25<-subset(TestSamples, Temperature==25)
+  TestSamples30<-subset(TestSamples, Temperature==30)
+  TestSamples35<-subset(TestSamples, Temperature==35)
+  TestSamples40<-subset(TestSamples, Temperature==40)
+  
+  Reference<-subset(Data, Buffer=='Reference')
+  Reference25<-subset(Reference, Temperature==25)
+  Reference30<-subset(Reference, Temperature==30)
+  Reference35<-subset(Reference, Temperature==35)
+  Reference40<-subset(Reference, Temperature==40)
+
+
+
+
+TestSamples_d3<-subset(TestSamples, Rel_Absorbance>0 & Temperature == 25& pH==8.5)
+hist(TestSamples_d3$Rel_Absorbance, breaks = 40, xlim = c(0,0.07), xlab="Absorbance [AU]")
+
+
+
+
+
+theme_set(theme_bw())
+
+plot_TS<-ggplot(TestSamples_d3, aes(x=Rel_Absorbance, y=Int_Photo, group=pH, color=pH, shape=pH)) +
+  geom_point(aes(color=pH))+xlim(0,0.08)+ylim(0,200000)+ geom_smooth(method=lm, se=FALSE,aes(fill=pH))+
+  xlab("Absorbance [AU]")+ylab("Integrated PL [AU]")
+
+plot_TS + facet_grid(cols = vars(Temperature))
+
+plot_TS<-ggplot(Reference, aes(x=Rel_Absorbance, y=Int_Photo, group=pH, color=pH, shape=pH)) +
+  geom_point(aes(color=pH))+xlim(0,0.1)+ylim(0,3000000)+ geom_smooth(method=lm, se=FALSE,aes(fill=pH))+
+  xlab("Absorbance [AU]")+ylab("Integrated PL [AU]")
+
+plot_TS + facet_grid(cols = vars(Temperature))
+
+
+#MES
+
+LF_MES25<-lm(formula = Int_Photo ~ Absorbance, data = subset(TestSamples25, Buffer=='MES'))
+LF_MES30<-lm(formula = Int_Photo ~ Absorbance, data = subset(TestSamples30, Buffer=='MES'))
+LF_MES35<-lm(formula = Int_Photo ~ Absorbance, data = subset(TestSamples35, Buffer=='MES'))
+LF_MES40<-lm(formula = Int_Photo ~ Absorbance, data = subset(TestSamples40, Buffer=='MES'))
+
+S_MES25<-coef(LF_MES25)["Absorbance"]
+S_MES30<-coef(LF_MES30)["Absorbance"] 
+S_MES35<-coef(LF_MES35)["Absorbance"]
+S_MES40<-coef(LF_MES40)["Absorbance"] 
+
+Slopes_MES<-rbind(S_MES25,S_MES30,S_MES35,S_MES40)
+
+#HEPES
+
+LF_HEPES25<-lm(formula = Int_Photo ~ Absorbance, data = subset(TestSamples25, Buffer=='HEPES'))
+LF_HEPES30<-lm(formula = Int_Photo ~ Absorbance, data = subset(TestSamples30, Buffer=='HEPES'))
+LF_HEPES35<-lm(formula = Int_Photo ~ Absorbance, data = subset(TestSamples35, Buffer=='HEPES'))
+LF_HEPES40<-lm(formula = Int_Photo ~ Absorbance, data = subset(TestSamples40, Buffer=='HEPES'))
+
+S_HEPES25<-coef(LF_HEPES25)["Absorbance"]
+S_HEPES30<-coef(LF_HEPES30)["Absorbance"] 
+S_HEPES35<-coef(LF_HEPES35)["Absorbance"]
+S_HEPES40<-coef(LF_HEPES40)["Absorbance"] 
+
+Slopes_HEPES<-rbind(S_HEPES25,S_HEPES30,S_HEPES35,S_HEPES40)
+
+#TRIS
+
+LF_TRIS25<-lm(formula = Int_Photo ~ Absorbance, data = subset(TestSamples25, Buffer=='TRIS'))
+LF_TRIS30<-lm(formula = Int_Photo ~ Absorbance, data = subset(TestSamples30, Buffer=='TRIS'))
+LF_TRIS35<-lm(formula = Int_Photo ~ Absorbance, data = subset(TestSamples35, Buffer=='TRIS'))
+LF_TRIS40<-lm(formula = Int_Photo ~ Absorbance, data = subset(TestSamples40, Buffer=='TRIS'))
+
+S_TRIS25<-coef(LF_TRIS25)["Absorbance"]
+S_TRIS30<-coef(LF_TRIS30)["Absorbance"] 
+S_TRIS35<-coef(LF_TRIS35)["Absorbance"]
+S_TRIS40<-coef(LF_TRIS40)["Absorbance"] 
+
+Slopes_TRIS<-rbind(S_TRIS25,S_TRIS30,S_TRIS35,S_TRIS40)
+
+#rEFERENCE
+
+LF_REF25<-lm(formula = Int_Photo ~ Absorbance, data = Reference25)
+LF_REF30<-lm(formula = Int_Photo ~ Absorbance, data = Reference30)
+LF_REF35<-lm(formula = Int_Photo ~ Absorbance, data = Reference35)
+LF_REF40<-lm(formula = Int_Photo ~ Absorbance, data = Reference40)
+
+S_REF25<-coef(LF_REF25)["Absorbance"]
+S_REF30<-coef(LF_REF30)["Absorbance"] 
+S_REF35<-coef(LF_REF35)["Absorbance"]
+S_REF40<-coef(LF_REF40)["Absorbance"] 
+
+Slopes_REF<-rbind(S_REF25,S_REF30,S_REF35,S_REF40)
+
+QY_MES<-Slopes_MES/Slopes_REF*0.94 #0.94 is the quantum yield of Rh 6g
+QY_HEPES<-Slopes_HEPES/Slopes_REF*0.94
+QY_TRIS<-Slopes_TRIS/Slopes_REF*0.94
+
+QY<-c(QY_MES[,1],QY_HEPES[,1],QY_TRIS[,1])
+
+
+#Standard errors
+  SE_M25<-summary(LF_MES25)$coef[2,2]
+  SE_M30<-summary(LF_MES30)$coef[2,2]
+  SE_M35<-summary(LF_MES35)$coef[2,2]
+  SE_M40<-summary(LF_MES40)$coef[2,2]
+  
+  SE_M <- c(SE_M25,SE_M30,SE_M35,SE_M40)
+  
+  SE_H25<-summary(LF_HEPES25)$coef[2,2]
+  SE_H30<-summary(LF_HEPES30)$coef[2,2]
+  SE_H35<-summary(LF_HEPES35)$coef[2,2]
+  SE_H40<-summary(LF_HEPES40)$coef[2,2]
+  
+  SE_H <- c(SE_H25,SE_H30,SE_H35,SE_H40)
+  
+  SE_T25<-summary(LF_TRIS25)$coef[2,2]
+  SE_T30<-summary(LF_TRIS30)$coef[2,2]
+  SE_T35<-summary(LF_TRIS35)$coef[2,2]
+  SE_T40<-summary(LF_TRIS40)$coef[2,2]
+  
+  SE_T <- c(SE_T25,SE_T30,SE_T35,SE_T40)
+  
+  SE_R25<-summary(LF_REF25)$coef[2,2]
+  SE_R30<-summary(LF_REF30)$coef[2,2]
+  SE_R35<-summary(LF_REF35)$coef[2,2]
+  SE_R40<-summary(LF_REF40)$coef[2,2]
+  
+  SE_R <- c(SE_R25,SE_R30,SE_R35,SE_R40)
+  
+  SE_QY_M<-QY_MES*sqrt((SE_M/Slopes_MES)^2+(SE_R/Slopes_REF)^2)
+  SE_QY_H<-QY_HEPES*sqrt((SE_H/Slopes_HEPES)^2+(SE_R/Slopes_REF)^2)
+  SE_QY_T<-QY_TRIS*sqrt((SE_T/Slopes_TRIS)^2+(SE_R/Slopes_REF)^2)
+  
+  SE<-rbind(SE_QY_M,SE_QY_H,SE_QY_T)
+
+
+#Creating dataframe.
+
+Buffer<-c(rep("MES",4),rep("HEPES",4),rep("TRIS",4))
+pH<-c(rep(5.5,4),rep(7.6,4),rep(8.5,4))
+Days_In_Water<-c(rep(0,12))
+Temperature<-c(rep(c(25,30,35,40),4))
+
+Temporal<-cbind(pH,Days_In_Water,Temperature,QY,SE)
+QY_Matrix<- cbind(Temporal[,"pH"],
+                  as.numeric(Temporal[,"Days_In_Water"]),Temporal[,"Temperature"],
+                  as.numeric(Temporal[,"QY"]),as.numeric(Temporal[,"Absorbance"]))
+colnames(QY_Matrix) <- c("pH", "Days_In_Water", "Temperature", "QY","SE" )
+
+
+QY_Matrix.df <- as.data.frame(QY_Matrix)
+
+
+plot_QY<-ggplot(QY_Matrix.df, aes(x=Days_In_Water, y=QY, group=Temperature, color=Temperature)) +
+  geom_point(aes(color=Temperature))+xlim(0,4)+ylim(0,0.2)+ geom_smooth(method=lm, se=FALSE,aes(fill=Temperature))+
+  xlab("Days in Buffer")+ylab("Quantum Yield")+scale_shape_identity()+geom_errorbar(aes(ymin=QY-SE, ymax=QY+SE), width=.5)
+
+plot_QY + facet_grid(cols = vars(pH))
+
+
